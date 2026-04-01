@@ -1,163 +1,231 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _acceptedTerms = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-        ),
+        color: Colors.white,
         child: Stack(
           children: [
-            // Фонові кола
-            _buildBlob(top: 50, left: -30, color: Color(0xFFE8B4F8), size: 150),
-            _buildBlob(top: 100, right: -20, color: Color(0xFFF0F8A0), size: 120),
-            _buildBlob(bottom: 100, left: 20, color: Color(0xFFF0F8A0), size: 130),
-            _buildBlob(bottom: 50, right: -10, color: Color(0xFFE8B4F8), size: 160),
-            _buildBlob(top: 300, left: 50, color: Color(0xFFE8B4F8), size: 100),
+            // Розмиті блоби
+            Positioned(
+              top: -80, left: -80,
+              child: _blurBlob(250, const Color(0xFFFFB3C6)),
+            ),
+            Positioned(
+              bottom: -80, right: -80,
+              child: _blurBlob(260, const Color(0xFFD4F5B0)),
+            ),
 
-            // Контент
             SafeArea(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 40),
+                    const SizedBox(height: 60),
 
-                    // Логотип
-                    Image.asset('assets/logo.png', height: 80),
-                    SizedBox(height: 8),
-                    Text(
-                      'STEP BY STEP',
+                    const Text(
+                      'STEP  BY  STEP',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF3D1A6E),
-                        letterSpacing: 2,
+                        color: Color(0xFF7B2FBE),
+                        letterSpacing: 3,
+                        fontFamily: 'serif',
                       ),
                     ),
-                    Text(
+                    const Text(
                       'Learn with Flashcards',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF9B6BBE),
+                        color: Color(0xFF00BCD4),
+                        fontFamily: 'serif',
                       ),
                     ),
 
-                    SizedBox(height: 32),
+                    const SizedBox(height: 48),
 
-                    Text(
+                    const Text(
                       'Sign up',
                       style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontFamily: 'serif',
                       ),
                     ),
 
-                    SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     // Email
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'Email ',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '*',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
                       controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: 'Email',
-                        suffixIcon: Icon(Icons.star, size: 12, color: Colors.red),
+                        hintText: 'example@mail.com',
+                        hintStyle: const TextStyle(color: Colors.black26),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black26),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black26),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                     ),
 
-                    SizedBox(height: 12),
+                    const SizedBox(height: 20),
 
                     // Password
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'Password ',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '*',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        hintText: 'Enter your password',
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.remove_red_eye_outlined
+                                : Icons.visibility_off_outlined,
+                            color: Colors.black45,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscurePassword = !_obscurePassword),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black26),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black26),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                     ),
 
-                    SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
-                    // Вже є акаунт
-                    GestureDetector(
-                      onTap: () {
-                        // Navigator.push до LoginScreen
-                      },
+                    const Align(
+                      alignment: Alignment.centerLeft,
                       child: Text(
-                        'Already have an account? Log in',
-                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                        'Password must contain 1 uppercase letter and 1 special character',
+                        style: TextStyle(fontSize: 11, color: Colors.black45),
                       ),
                     ),
 
-                    SizedBox(height: 8),
+                    const SizedBox(height: 32),
 
-                    Text(
-                      'Password must contain 1 uppercase letter and 1 special character',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Colors.black45),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7B2FBE),
+                          shape: const StadiumBorder(),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'Create an account',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'serif',
+                          ),
+                        ),
+                      ),
                     ),
 
-                    SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                    // Чекбокс
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Checkbox(
-                          value: _acceptedTerms,
-                          onChanged: (val) => setState(() => _acceptedTerms = val!),
+                        const Text(
+                          'Already have an account? ',
+                          style: TextStyle(color: Colors.black54, fontSize: 13),
                         ),
-                        Expanded(
-                          child: Text(
-                            'I accept the terms of service and privacy policy',
-                            style: TextStyle(fontSize: 13),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: перехід на логін
+                          },
+                          child: const Text(
+                            'Log in',
+                            style: TextStyle(
+                              color: Color(0xFF7B2FBE),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 20),
-
-                    // Кнопка
-                    OutlinedButton(
-                      onPressed: _acceptedTerms ? () {
-                        // логіка реєстрації
-                      } : null,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size(200, 48),
-                        shape: StadiumBorder(),
-                        side: BorderSide(color: Color(0xFF3D1A6E)),
-                      ),
-                      child: Text(
-                        'Create an account',
-                        style: TextStyle(color: Color(0xFF3D1A6E)),
-                      ),
-                    ),
-
-                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -168,18 +236,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildBlob({double? top, double? bottom, double? left, double? right, required Color color, required double size}) {
-    return Positioned(
-      top: top,
-      bottom: bottom,
-      left: left,
-      right: right,
+  Widget _blurBlob(double size, Color color) {
+    return ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
       child: Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.5),
+          color: color.withValues(alpha: 0.8),
         ),
       ),
     );
