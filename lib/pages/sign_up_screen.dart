@@ -141,7 +141,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        hintText: 'Enter your password',
+                        hintText: 'Password',
+                        hintStyle: const TextStyle(color: Colors.black12),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -180,6 +181,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                     const SizedBox(height: 32),
 
+                    // Кнопка
                     SizedBox(
                       width: double.infinity,
                       height: 52,
