@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'log_in.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -13,6 +14,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+  void _goToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,19 +37,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         color: Colors.white,
         child: Stack(
           children: [
-            // Розмиті блоби
             Positioned(
-              top: -80, left: -80,
+              top: -80,
+              left: -80,
               child: _blurBlob(250, const Color(0xFFFFB3C6)),
             ),
             Positioned(
-              bottom: -80, right: -80,
+              bottom: -80,
+              right: -80,
               child: _blurBlob(260, const Color(0xFFD4F5B0)),
             ),
-
             SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 40, vertical: 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -48,6 +66,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         fontFamily: 'serif',
                       ),
                     ),
+
                     const Text(
                       'Learn with Flashcards',
                       style: TextStyle(
@@ -71,7 +90,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                     const SizedBox(height: 32),
 
-                    // Email
+                    // EMAIL
                     Align(
                       alignment: Alignment.centerLeft,
                       child: RichText(
@@ -91,32 +110,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 6),
+
                     TextField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'example@mail.com',
-                        hintStyle: const TextStyle(color: Colors.black26),
+                        hintStyle:
+                        const TextStyle(color: Colors.black26),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.black26),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.black26),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF7B2FBE),
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Password
+                    // PASSWORD
                     Align(
                       alignment: Alignment.centerLeft,
                       child: RichText(
@@ -136,13 +156,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 6),
+
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: 'Password',
-                        hintStyle: const TextStyle(color: Colors.black12),
+                        hintStyle:
+                        const TextStyle(color: Colors.black12),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -150,22 +173,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 : Icons.visibility_off_outlined,
                             color: Colors.black45,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.black26),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.black26),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF7B2FBE),
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                       ),
                     ),
 
@@ -175,13 +199,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Password must contain 1 uppercase letter and 1 special character',
-                        style: TextStyle(fontSize: 11, color: Colors.black45),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.black45,
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 32),
 
-                    // Кнопка
+                    // BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -189,9 +216,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: () {
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7B2FBE),
+                          backgroundColor:
+                          const Color(0xFF7B2FBE),
                           shape: const StadiumBorder(),
-                          elevation: 2,
                         ),
                         child: const Text(
                           'Create an account',
@@ -211,12 +238,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         const Text(
                           'Already have an account? ',
-                          style: TextStyle(color: Colors.black54, fontSize: 13),
+                          style: TextStyle(
+                              color: Colors.black54, fontSize: 13),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            // TODO: перехід на логін
-                          },
+                          onTap: _goToLogin,
                           child: const Text(
                             'Log in',
                             style: TextStyle(
@@ -246,7 +272,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withValues(alpha: 0.8),
+          color: color.withOpacity(0.8),
         ),
       ),
     );
