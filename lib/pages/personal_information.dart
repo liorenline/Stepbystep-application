@@ -56,131 +56,201 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Pink blob — top left (blurred)
+          // Blob — top right (pink)
           Positioned(
-            top: -80,
-            left: -80,
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0x55F48FB1),
-                ),
-              ),
-            ),
+            top: -60,
+            right: -60,
+            child: _blurBlob(260, const Color(0xFFFFB3C6)),
           ),
-          // Green blob — bottom right (blurred)
+          // Blob — top left (green)
           Positioned(
-            bottom: -80,
-            right: -80,
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0x55C5E1A5),
-                ),
-              ),
-            ),
+            top: -60,
+            left: -60,
+            child: _blurBlob(220, const Color(0xFFD4F5B0)),
           ),
+          // Blob — center right (purple)
+          Positioned(
+            top: 300,
+            right: -40,
+            child: _blurBlob(200, const Color(0xFFE1C4F5)),
+          ),
+          // Blob — bottom left (pink)
+          Positioned(
+            bottom: -60,
+            left: -60,
+            child: _blurBlob(240, const Color(0xFFFFB3C6)),
+          ),
+          // Blob — bottom right (green)
+          Positioned(
+            bottom: -60,
+            right: -60,
+            child: _blurBlob(220, const Color(0xFFD4F5B0)),
+          ),
+
           // Content
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, size: 16),
-                    label: const Text('Back to Cabinet'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black87,
-                      side: const BorderSide(color: Colors.black26),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: [
+                // TOP BAR
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Logo
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'STEP BY STEP',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF7B2FBE),
+                              letterSpacing: 1.5,
+                              fontFamily: 'serif',
+                            ),
+                          ),
+                          const Text(
+                            'Learn with Flashcards',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF00BCD4),
+                              fontFamily: 'serif',
+                            ),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      textStyle: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  const Center(
-                    child: Text(
-                      'Personal Information',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 36),
-                  _buildField(
-                    label: 'First Name',
-                    controller: _firstNameController,
-                    enabled: _firstNameEnabled,
-                    editLabel: 'Edit',
-                    onEdit: () => setState(
-                            () => _firstNameEnabled = !_firstNameEnabled),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildField(
-                    label: 'Last Name',
-                    controller: _lastNameController,
-                    enabled: _lastNameEnabled,
-                    editLabel: 'Edit',
-                    onEdit: () =>
-                        setState(() => _lastNameEnabled = !_lastNameEnabled),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildField(
-                    label: 'Email',
-                    controller: _emailController,
-                    enabled: _emailEnabled,
-                    editLabel: 'Edit email',
-                    onEdit: () =>
-                        setState(() => _emailEnabled = !_emailEnabled),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildField(
-                    label: 'Password',
-                    controller: _passwordController,
-                    enabled: _passwordEnabled,
-                    editLabel: 'Edit password',
-                    onEdit: () =>
-                        setState(() => _passwordEnabled = !_passwordEnabled),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 36),
-                  const Divider(color: Colors.black12),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: OutlinedButton(
-                      onPressed: _showDeleteDialog,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red, width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+
+                      // Avatar
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF7B2FBE),
+                            width: 1.5,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 36, vertical: 14),
-                        textStyle: const TextStyle(fontSize: 15),
+                        child: const Icon(
+                          Icons.person_outline,
+                          color: Color(0xFF7B2FBE),
+                          size: 22,
+                        ),
                       ),
-                      child: const Text('Delete account'),
+                    ],
+                  ),
+                ),
+
+                // Scrollable content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Back button
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.arrow_back, size: 16),
+                          label: const Text('Back to Cabinet'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.black87,
+                            side: const BorderSide(color: Colors.black26),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            textStyle: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        const Center(
+                          child: Text(
+                            'Personal Information',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              fontFamily: 'serif',
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 36),
+
+                        _buildField(
+                          label: 'First Name',
+                          controller: _firstNameController,
+                          enabled: _firstNameEnabled,
+                          editLabel: 'Edit',
+                          onEdit: () => setState(
+                                  () => _firstNameEnabled = !_firstNameEnabled),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          label: 'Last Name',
+                          controller: _lastNameController,
+                          enabled: _lastNameEnabled,
+                          editLabel: 'Edit',
+                          onEdit: () => setState(
+                                  () => _lastNameEnabled = !_lastNameEnabled),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          label: 'Email',
+                          controller: _emailController,
+                          enabled: _emailEnabled,
+                          editLabel: 'Edit email',
+                          onEdit: () =>
+                              setState(() => _emailEnabled = !_emailEnabled),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          label: 'Password',
+                          controller: _passwordController,
+                          enabled: _passwordEnabled,
+                          editLabel: 'Edit password',
+                          onEdit: () =>
+                              setState(() => _passwordEnabled = !_passwordEnabled),
+                          obscureText: true,
+                        ),
+
+                        const SizedBox(height: 36),
+                        const Divider(color: Colors.black12),
+                        const SizedBox(height: 32),
+
+                        Center(
+                          child: OutlinedButton(
+                            onPressed: _showDeleteDialog,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(
+                                  color: Colors.red, width: 1.2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 36, vertical: 14),
+                              textStyle: const TextStyle(fontSize: 15),
+                            ),
+                            child: const Text('Delete account'),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -214,7 +284,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
           children: [
             Expanded(
               child: SizedBox(
-                height: 52, // однакова висота для всіх полів
+                height: 52,
                 child: TextField(
                   controller: controller,
                   enabled: enabled,
@@ -226,7 +296,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                   ),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: enabled ? Colors.white : const Color(0xFFF5F5F5),
+                    fillColor:
+                    enabled ? Colors.white : const Color(0xFFF5F5F5),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 0),
                     border: OutlineInputBorder(
@@ -243,7 +314,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF7C5CFC)),
+                      borderSide:
+                      const BorderSide(color: Color(0xFF7C5CFC)),
                     ),
                   ),
                 ),
@@ -251,7 +323,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
             ),
             const SizedBox(width: 12),
             SizedBox(
-              width: 90, // однакова ширина для всіх кнопок
+              width: 90,
               child: TextButton(
                 onPressed: onEdit,
                 style: TextButton.styleFrom(
@@ -270,6 +342,20 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _blurBlob(double size, Color color) {
+    return ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.8),
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'personal_information.dart';
+import 'cabinet_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, this.username = 'username'});
@@ -81,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                    const PersonalInformationPage(),
+                                    const CabinetScreen(),
                                   ),
                                 );
                               },

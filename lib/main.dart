@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'pages/log_in.dart';
-import 'pages/sign_up_screen.dart';
-import 'pages/personal_information.dart';
-import 'pages/two_fact.dart';
 import 'pages/welcome_page.dart';
 
 void main() {
