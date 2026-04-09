@@ -67,7 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const Text(
                           'Learn with Flashcards',
                           style: TextStyle(
@@ -76,9 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 48),
-
                         const Text(
                           'Log in',
                           style: TextStyle(
@@ -88,10 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
-                        // EMAIL
                         Align(
                           alignment: Alignment.centerLeft,
                           child: RichText(
@@ -111,9 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -131,10 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 horizontal: 16, vertical: 14),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
-                        // PASSWORD
                         Align(
                           alignment: Alignment.centerLeft,
                           child: RichText(
@@ -154,9 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -187,9 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 horizontal: 16, vertical: 14),
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Align(
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
@@ -203,14 +188,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
                         SizedBox(
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const HomeScreen(username: 'username'),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF7B2FBE),
                               shape: const StadiumBorder(),
@@ -225,9 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

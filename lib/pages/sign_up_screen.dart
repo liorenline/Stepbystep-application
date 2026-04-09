@@ -40,12 +40,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Positioned(
                 top: -80,
                 left: -80,
-                child: _blurBlob(250, const Color(0xFFFFB3C6)),
+                child: _blurBlob(300, const Color(0xFFFFB3C6)),
               ),
               Positioned(
                 bottom: -80,
                 right: -80,
-                child: _blurBlob(260, const Color(0xFFD4F5B0)),
+                child: _blurBlob(300, const Color(0xFFD4F5B0)),
               ),
               SafeArea(
                 child: SizedBox(
@@ -67,7 +67,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const Text(
                           'Learn with Flashcards',
                           style: TextStyle(
@@ -76,9 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 48),
-
                         const Text(
                           'Sign up',
                           style: TextStyle(
@@ -88,10 +85,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
-                        // EMAIL
                         Align(
                           alignment: Alignment.centerLeft,
                           child: RichText(
@@ -111,9 +105,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -131,10 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 horizontal: 16, vertical: 14),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
-                        // PASSWORD
                         Align(
                           alignment: Alignment.centerLeft,
                           child: RichText(
@@ -154,9 +143,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -187,9 +174,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 horizontal: 16, vertical: 14),
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -200,14 +185,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
                         SizedBox(
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const HomeScreen(username: 'username'),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF7B2FBE),
                               shape: const StadiumBorder(),
@@ -222,9 +212,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

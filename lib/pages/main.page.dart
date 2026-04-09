@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'personal_information.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, this.username = 'username'});
@@ -75,7 +76,15 @@ class HomeScreen extends StatelessWidget {
 
                             // Avatar
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                    const PersonalInformationPage(),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 width: 40,
                                 height: 40,
