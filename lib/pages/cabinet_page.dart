@@ -11,25 +11,21 @@ class CabinetScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Blob — top right (pink)
           Positioned(
             top: -60,
             right: -60,
             child: _blurBlob(260, const Color(0xFFFFB3C6)),
           ),
-          // Blob — center left (green)
           Positioned(
             top: 200,
             left: -80,
             child: _blurBlob(220, const Color(0xFFD4F5B0)),
           ),
-          // Blob — center right (purple)
           Positioned(
             top: 300,
             right: -40,
             child: _blurBlob(200, const Color(0xFFE1C4F5)),
           ),
-          // Blob — bottom left (pink)
           Positioned(
             bottom: -60,
             left: -60,
@@ -50,7 +46,6 @@ class CabinetScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Logo
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: const [
@@ -74,8 +69,6 @@ class CabinetScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-
-                            // Avatar
                             Container(
                               width: 40,
                               height: 40,
@@ -96,12 +89,34 @@ class CabinetScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // CENTER CONTENT — розтягується на весь залишок екрану
+                      // BACK BUTTON
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(Icons.arrow_back, size: 16),
+                            label: const Text('Back to Home'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.black87,
+                              side: const BorderSide(color: Colors.black26),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              textStyle: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // CENTER CONTENT
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Title
                             const Text(
                               'My cabinet',
                               style: TextStyle(
@@ -114,7 +129,6 @@ class CabinetScreen extends StatelessWidget {
 
                             const SizedBox(height: 48),
 
-                            // Menu buttons
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 40),
                               child: Column(
