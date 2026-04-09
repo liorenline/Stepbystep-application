@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'log_in.dart';
-import 'main.page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'verify_page.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -11,21 +12,107 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  final _confirmPasswordController = TextEditingController();
 
-  void _goToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  final String baseUrl = "https://stepbystep-cmnf.onrender.com/api";
+
+  Future<void> _signUp() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
+      _showError("All fields are required");
+      return;
+    }
+
+    if (password != confirm) {
+      _showError("Passwords do not match");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http
+          .post(
+        Uri.parse("$baseUrl/register"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": username,
+          "email": email,
+          "password": password,
+          "confirm_password": confirm,
+        }),
+      )
+          .timeout(const Duration(seconds: 15));
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // ✅ перевірка HTTP статусу
+      if (response.statusCode != 200) {
+        _showError(data["error"] ?? "Server error");
+        return;
+      }
+
+      // ✅ перевірка success
+      if (data["success"] == true) {
+        final userData = data["data"];
+
+        if (userData == null || userData["user_id"] == null) {
+          _showError("Invalid server response");
+          return;
+        }
+
+        final userId = userData["user_id"];
+
+        _showSuccess(data["message"] ?? "Success");
+
+        if (!mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyEmailScreen(userId: userId),
+          ),
+        );
+      } else {
+        _showError(data["error"] ?? "Registration failed");
+      }
+    } catch (e) {
+      _showError("Server is unavailable (try again)");
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
+  }
+
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
     );
   }
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -48,15 +135,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: _blurBlob(300, const Color(0xFFD4F5B0)),
               ),
               SafeArea(
-                child: SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
+                child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        const SizedBox(height: 40),
+
                         const Text(
                           'STEP  BY  STEP',
                           style: TextStyle(
@@ -64,175 +149,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF7B2FBE),
                             letterSpacing: 3,
-                            fontFamily: 'serif',
                           ),
                         ),
-                        const Text(
-                          'Learn with Flashcards',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF00BCD4),
-                            fontFamily: 'serif',
-                          ),
-                        ),
-                        const SizedBox(height: 48),
+
+                        const SizedBox(height: 40),
+
                         const Text(
                           'Sign up',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                            fontFamily: 'serif',
                           ),
                         ),
-                        const SizedBox(height: 32),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: RichText(
-                            text: const TextSpan(
-                              text: 'Email ',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: '*',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
+
+                        const SizedBox(height: 30),
+
+                        _input("Username", _usernameController),
+                        _input("Email", _emailController),
+                        _input("Password", _passwordController, isPassword: true),
+                        _input("Confirm Password", _confirmPasswordController, isPassword: true),
+
+                        const SizedBox(height: 10),
+
+                        const Text(
+                          'Password must contain 1 uppercase letter and 1 special character',
+                          style: TextStyle(fontSize: 11, color: Colors.black45),
                         ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            hintText: 'example@mail.com',
-                            hintStyle: const TextStyle(color: Colors.black26),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: RichText(
-                            text: const TextSpan(
-                              text: 'Password ',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: '*',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            hintStyle: const TextStyle(color: Colors.black12),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.remove_red_eye_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: Colors.black45,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF7B2FBE)),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Password must contain 1 uppercase letter and 1 special character',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.black45,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+
+                        const SizedBox(height: 30),
+
                         SizedBox(
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const HomeScreen(username: 'username'),
-                                ),
-                              );
-                            },
+                            onPressed: _isLoading ? null : _signUp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF7B2FBE),
                               shape: const StadiumBorder(),
                             ),
-                            child: const Text(
+                            child: _isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text(
                               'Create an account',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontFamily: 'serif',
-                              ),
+                              style: TextStyle(color: Colors.white),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Already have an account? ',
-                              style: TextStyle(color: Colors.black54, fontSize: 13),
-                            ),
-                            GestureDetector(
-                              onTap: _goToLogin,
-                              child: const Text(
-                                'Log in',
-                                style: TextStyle(
-                                  color: Color(0xFF7B2FBE),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -242,6 +206,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _input(String label, TextEditingController controller,
+      {bool isPassword = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          obscureText: isPassword ? _obscurePassword : false,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            suffixIcon: isPassword
+                ? IconButton(
+              icon: Icon(_obscurePassword
+                  ? Icons.visibility
+                  : Icons.visibility_off),
+              onPressed: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+            )
+                : null,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
