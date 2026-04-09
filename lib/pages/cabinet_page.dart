@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'personal_information.dart';
 
 class CabinetScreen extends StatelessWidget {
-  const CabinetScreen({super.key});
+  final int userId;
+
+  const CabinetScreen({
+    super.key,
+    required this.userId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +44,6 @@ class CabinetScreen extends StatelessWidget {
                   height: constraints.maxHeight,
                   child: Column(
                     children: [
-                      // TOP BAR
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 16),
@@ -56,7 +60,6 @@ class CabinetScreen extends StatelessWidget {
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF7B2FBE),
                                     letterSpacing: 1.5,
-                                    fontFamily: 'serif',
                                   ),
                                 ),
                                 Text(
@@ -64,11 +67,11 @@ class CabinetScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Color(0xFF00BCD4),
-                                    fontFamily: 'serif',
                                   ),
                                 ),
                               ],
                             ),
+
                             Container(
                               width: 40,
                               height: 40,
@@ -89,30 +92,6 @@ class CabinetScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // BACK BUTTON
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            icon: const Icon(Icons.arrow_back, size: 16),
-                            label: const Text('Back to Home'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.black87,
-                              side: const BorderSide(color: Colors.black26),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              textStyle: const TextStyle(fontSize: 13),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // CENTER CONTENT
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +102,6 @@ class CabinetScreen extends StatelessWidget {
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
-                                fontFamily: 'serif',
                               ),
                             ),
 
@@ -143,21 +121,27 @@ class CabinetScreen extends StatelessWidget {
                                     onTap: () {},
                                   ),
                                   const SizedBox(height: 16),
+
+                                  // ✅ FIXED HERE
                                   _menuButton(
                                     label: 'Personal Information',
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                          const PersonalInformationPage(),
+                                          builder: (_) =>
+                                              PersonalInformationPage(
+                                                userId: userId,
+                                              ),
                                         ),
                                       );
                                     },
                                   ),
+
                                   const SizedBox(height: 16),
                                   _menuButton(
-                                    label: 'Try Two-factor\nauthentication method',
+                                    label:
+                                    'Try Two-factor\nauthentication method',
                                     onTap: () {},
                                     multiline: true,
                                   ),
@@ -194,10 +178,7 @@ class CabinetScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.7),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: Colors.black26,
-            width: 1,
-          ),
+          border: Border.all(color: Colors.black26),
         ),
         child: Text(
           label,
@@ -205,7 +186,6 @@ class CabinetScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 15,
             color: Colors.black87,
-            fontFamily: 'serif',
             height: 1.4,
           ),
         ),

@@ -4,9 +4,14 @@ import 'personal_information.dart';
 import 'cabinet_page.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, this.username = 'username'});
+  const HomeScreen({
+    super.key,
+    required this.username,
+    required this.userId,
+  });
 
   final String username;
+  final int userId;
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +58,8 @@ class HomeScreen extends StatelessWidget {
                             // Logo
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
+                              children: const [
+                                Text(
                                   'STEP BY STEP',
                                   style: TextStyle(
                                     fontSize: 14,
@@ -64,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                                     fontFamily: 'serif',
                                   ),
                                 ),
-                                const Text(
+                                Text(
                                   'Learn with Flashcards',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -82,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                    const CabinetScreen(),
+                                        CabinetScreen(userId: userId),
                                   ),
                                 );
                               },
@@ -138,7 +143,6 @@ class HomeScreen extends StatelessWidget {
 
                             const SizedBox(height: 48),
 
-                            // + button
                             GestureDetector(
                               onTap: () {},
                               child: Container(

@@ -16,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -57,11 +58,15 @@ class _LoginScreenState extends State<LoginScreen> {
         final responseData = data['data'];
 
         final username = responseData['username']?.toString() ?? 'User';
+        final userId = responseData['user_id']; // ✅ важливо
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => HomeScreen(username: username),
+            builder: (_) => HomeScreen(
+              username: username,
+              userId: userId,
+            ),
           ),
         );
       } else {
@@ -105,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 right: -80,
                 child: _blurBlob(300, const Color(0xFFD4F5B0)),
               ),
+
               SafeArea(
                 child: SizedBox(
                   width: constraints.maxWidth,
@@ -133,6 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 48),
+
                         const Text(
                           'Log in',
                           style: TextStyle(
@@ -142,6 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
+
                         const SizedBox(height: 32),
 
                         /// EMAIL
@@ -217,7 +225,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Text(
                               "Don't have an account? ",
                               style: TextStyle(
-                                  color: Colors.black54, fontSize: 13),
+                                color: Colors.black54,
+                                fontSize: 13,
+                              ),
                             ),
                             GestureDetector(
                               onTap: _goToSignUp,
