@@ -56,13 +56,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       final Map<String, dynamic> data = jsonDecode(response.body);
 
-      // ✅ перевірка HTTP статусу
       if (response.statusCode != 200) {
         _showError(data["error"] ?? "Server error");
         return;
       }
 
-      // ✅ перевірка success
       if (data["success"] == true) {
         final userData = data["data"];
 
