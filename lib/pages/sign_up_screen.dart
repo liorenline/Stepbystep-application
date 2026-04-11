@@ -144,61 +144,70 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            children: [
-              Positioned(top: -80, left: -80, child: _blurBlob(300, const Color(0xFFFFB3C6))),
-              Positioned(bottom: -80, right: -80, child: _blurBlob(300, const Color(0xFFD4F5B0))),
-              SafeArea(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Column(
+      body: Stack(
+        children: [
+          Positioned(top: -80, left: -80, child: _blurBlob(300, const Color(0xFFFFB3C6))),
+          Positioned(bottom: -80, right: -80, child: _blurBlob(300, const Color(0xFFD4F5B0))),
+          SafeArea(
+            child: SizedBox(
+              height: screenHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    const Text(
+                      'STEP  BY  STEP',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7B2FBE),
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    const Text(
+                      'Sign up',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                    Column(
                       children: [
-                        const SizedBox(height: 40),
-                        const Text(
-                          'STEP  BY  STEP',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF7B2FBE), letterSpacing: 3),
-                        ),
-                        const SizedBox(height: 40),
-                        const Text('Sign up', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 30),
                         _input("Username", _usernameController),
                         _input("Email", _emailController),
                         _input("Password", _passwordController, isPassword: true),
                         _input("Confirm Password", _confirmPasswordController, isPassword: true),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Password must contain 1 uppercase letter and 1 special character',
-                          style: TextStyle(fontSize: 11, color: Colors.black45),
-                        ),
-                        const SizedBox(height: 30),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _signUp,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF7B2FBE),
-                              shape: const StadiumBorder(),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Text('Create an account', style: TextStyle(color: Colors.white)),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
                       ],
                     ),
-                  ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _signUp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7B2FBE),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                            : const Text(
+                          'Create an account',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

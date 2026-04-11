@@ -1,11 +1,7 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'personal_information.dart';
 
-// ─────────────────────────────────────────────
-//  Shared constants (copy from personal_information_page.dart
-//  or move to a shared constants file)
-// ─────────────────────────────────────────────
 const _purple = Color(0xFF7B2FBE);
 
 const _fieldBorder = OutlineInputBorder(
@@ -28,34 +24,10 @@ const _baseDecoration = InputDecoration(
   contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
 );
 
-// ─────────────────────────────────────────────
-//  VerifyActionPage
-//
-//  A reusable verification page for any action that requires
-//  a 6-digit email code (password change, disable 2FA, etc.)
-//
-//  Usage:
-//    final success = await Navigator.push<bool>(
-//      context,
-//      MaterialPageRoute(
-//        builder: (_) => VerifyActionPage(
-//          userId: widget.userId,
-//          title: "Confirm password change",
-//          description: "Enter the 6-digit code sent to your email.",
-//          onVerified: (code) async {
-//            // perform the action and return true on success
-//            return true;
-//          },
-//        ),
-//      ),
-//    );
-// ─────────────────────────────────────────────
 class VerifyActionPage extends StatefulWidget {
   final int userId;
   final String title;
   final String description;
-
-  /// Called with the entered code. Should return `true` if the action succeeded.
   final Future<bool> Function(String code) onVerified;
 
   const VerifyActionPage({
@@ -97,11 +69,11 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
     try {
       final success = await widget.onVerified(code);
       if (!mounted) return;
-
       if (success) {
         Navigator.of(context).pop(true);
       } else {
-        setState(() => _errorMessage = "Invalid or expired code. Try again.");
+        setState(
+                () => _errorMessage = "Invalid or expired code. Try again.");
       }
     } catch (_) {
       if (!mounted) return;
@@ -122,13 +94,11 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(false),
         ),
-        title: Text(
-          widget.title,
-          style: const TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-              fontSize: 18),
-        ),
+        title: Text(widget.title,
+            style: const TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+                fontSize: 18)),
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -148,57 +118,45 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 16),
-
-                  // Icon
                   Container(
                     width: 72,
                     height: 72,
                     margin: const EdgeInsets.only(bottom: 24),
                     alignment: Alignment.center,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFF0EAFD),
-                      shape: BoxShape.circle,
-                    ),
+                        color: Color(0xFFF0EAFD), shape: BoxShape.circle),
                     child: const Icon(Icons.lock_outline,
                         color: _purple, size: 36),
                   ),
-
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  Text(widget.title,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  Text(
-                    widget.description,
-                    style: const TextStyle(
-                        fontSize: 14, color: Colors.black54, height: 1.6),
-                  ),
+                  Text(widget.description,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                          height: 1.6)),
                   const SizedBox(height: 36),
-
-                  // Code input
                   TextField(
                     controller: _codeController,
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 28,
-                      letterSpacing: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                        fontSize: 28,
+                        letterSpacing: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
                     decoration: _baseDecoration.copyWith(
                       hintText: "000000",
                       hintStyle: const TextStyle(
-                        fontSize: 28,
-                        letterSpacing: 12,
-                        color: Colors.black26,
-                      ),
+                          fontSize: 28,
+                          letterSpacing: 12,
+                          color: Colors.black26),
                       counterText: "",
                     ),
                   ),
-
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -207,18 +165,14 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
                             color: Colors.red, size: 16),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(
-                                color: Colors.red, fontSize: 13),
-                          ),
+                          child: Text(_errorMessage!,
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 13)),
                         ),
                       ],
                     ),
                   ],
-
                   const SizedBox(height: 32),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -227,26 +181,21 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
                         backgroundColor: _purple,
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: Colors.grey.shade300,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                            borderRadius: BorderRadius.circular(10)),
                       ),
                       child: _loading
                           ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                          : const Text(
-                        "Confirm",
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600),
-                      ),
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                          : const Text("Confirm",
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(height: 16),

@@ -122,7 +122,6 @@ class CabinetScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 16),
 
-                                  // ✅ FIXED HERE
                                   _menuButton(
                                     label: 'Personal Information',
                                     onTap: () {
@@ -141,7 +140,7 @@ class CabinetScreen extends StatelessWidget {
                                   const SizedBox(height: 16),
                                   _menuButton(
                                     label:
-                                    'Try Two-factor\nauthentication method',
+                                    'Technical support',
                                     onTap: () {},
                                     multiline: true,
                                   ),
