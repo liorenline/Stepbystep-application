@@ -20,7 +20,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  final String baseUrl = "https://stepbystep-cmnf.onrender.com/api";
+  final String baseUrl = "https://stepbystep.fly.dev/api";
 
   Future<void> _signUp() async {
     final username = _usernameController.text.trim();
@@ -39,6 +39,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     setState(() => _isLoading = true);
+    _showMessage("Connecting to server, please wait...");
 
     try {
       final response = await http
@@ -52,9 +53,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
           "confirm_password": confirm,
         }),
       )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 90));
 
       final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // Email exists but not verified — resend code and go to verify screen
+      if (response.statusCode == 409) {
+        await _resendAndNavigate(email);
+        return;
+      }
 
       if (response.statusCode != 200) {
         _showError(data["error"] ?? "Server error");
@@ -62,47 +69,76 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       if (data["success"] == true) {
-        final userData = data["data"];
-
-        if (userData == null || userData["user_id"] == null) {
+        final userId = data["data"]?["user_id"];
+        if (userId == null) {
           _showError("Invalid server response");
           return;
         }
 
-        final userId = userData["user_id"];
-
-        _showSuccess(data["message"] ?? "Success");
-
         if (!mounted) return;
-
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => VerifyEmailScreen(userId: userId),
+            builder: (_) => VerifyEmailScreen(userId: userId, email: email),
           ),
         );
       } else {
         _showError(data["error"] ?? "Registration failed");
       }
     } catch (e) {
-      _showError("Server is unavailable (try again)");
+      _showError("Server is unavailable. Please try again.");
     }
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _resendAndNavigate(String email) async {
+    try {
+      final response = await http
+          .post(
+        Uri.parse("$baseUrl/resend-verification"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email}),
+      )
+          .timeout(const Duration(seconds: 90));
+
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        final userId = data["data"]?["user_id"];
+        if (userId == null) {
+          _showError("Invalid server response");
+          return;
+        }
+
+        if (!mounted) return;
+        _showError("This email is already registered but not verified. A new code has been sent.");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyEmailScreen(userId: userId, email: email),
+          ),
+        );
+      } else {
+        _showError(data["error"] ?? "Failed to resend verification code.");
+      }
+    } catch (e) {
+      _showError("Server is unavailable. Please try again.");
     }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _showError(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
+      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
     );
   }
 
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+  void _showMessage(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -139,7 +175,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Column(
                       children: [
                         const SizedBox(height: 40),
-
                         const Text(
                           'STEP  BY  STEP',
                           style: TextStyle(
@@ -149,9 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             letterSpacing: 3,
                           ),
                         ),
-
                         const SizedBox(height: 40),
-
                         const Text(
                           'Sign up',
                           style: TextStyle(
@@ -159,23 +192,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         const SizedBox(height: 30),
-
                         _input("Username", _usernameController),
                         _input("Email", _emailController),
                         _input("Password", _passwordController, isPassword: true),
                         _input("Confirm Password", _confirmPasswordController, isPassword: true),
-
                         const SizedBox(height: 10),
-
                         const Text(
                           'Password must contain 1 uppercase letter and 1 special character',
                           style: TextStyle(fontSize: 11, color: Colors.black45),
                         ),
-
                         const SizedBox(height: 30),
-
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -186,14 +213,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               shape: const StadiumBorder(),
                             ),
                             child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
                                 : const Text(
                               'Create an account',
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -218,19 +248,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
           controller: controller,
           obscureText: isPassword ? _obscurePassword : false,
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             suffixIcon: isPassword
                 ? IconButton(
-              icon: Icon(_obscurePassword
-                  ? Icons.visibility
-                  : Icons.visibility_off),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
+              icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             )
                 : null,
           ),

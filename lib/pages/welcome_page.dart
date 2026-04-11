@@ -14,7 +14,7 @@ class WelcomeScreen extends StatelessWidget {
         builder: (context, constraints) {
           return Stack(
             children: [
-              // Blobs — як на інших екранах
+              // Blobs
               Positioned(
                 top: -80,
                 left: -80,

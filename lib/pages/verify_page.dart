@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'log_in.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   final int userId;
+  final String email;
 
-  const VerifyEmailScreen({super.key, required this.userId});
+  const VerifyEmailScreen({super.key, required this.userId, required this.email});
 
   @override
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -15,9 +17,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   final _codeController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isResending = false;
 
-  final String baseUrl = "https://stepbystep-cmnf.onrender.com/api/verify-email";
-
+  final String baseUrl = "https://stepbystep.fly.dev/api";
   Future<void> _verifyEmail() async {
     final code = _codeController.text.trim();
 
@@ -29,41 +31,72 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
+      final response = await http
+          .post(
+        Uri.parse("$baseUrl/verify-email"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "user_id": widget.userId,
           "code": code,
         }),
-      ).timeout(const Duration(seconds: 15));
+      )
+          .timeout(const Duration(seconds: 90));
 
       final data = jsonDecode(response.body);
 
       if (data["success"] == true) {
-        _showSuccess(data["message"]);
-
-        /// 🔥 після підтвердження — або логін, або home
-        Navigator.pop(context);
-        // або:
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+        _showMessage("Email verified! You can now log in.");
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
+        );
       } else {
-        _showError(data["error"]);
+        _showError(data["error"] ?? "Invalid or expired code.");
       }
     } catch (e) {
-      _showError("Server is unavailable (try again)");
+      _showError("Server is unavailable. Please try again.");
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _resendCode() async {
+    setState(() => _isResending = true);
+
+    try {
+      final response = await http
+          .post(
+        Uri.parse("$baseUrl/resend-verification"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": widget.email}),
+      )
+          .timeout(const Duration(seconds: 90));
+
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        _showMessage("A new code has been sent to ${widget.email}.");
+      } else {
+        _showError(data["error"] ?? "Failed to resend code.");
+      }
+    } catch (e) {
+      _showError("Server is unavailable. Please try again.");
+    }
+
+    if (mounted) setState(() => _isResending = false);
   }
 
   void _showError(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
+      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
     );
   }
 
-  void _showSuccess(String msg) {
+  void _showMessage(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg)),
     );
@@ -82,6 +115,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       appBar: AppBar(
         title: const Text("Verify Email"),
         backgroundColor: const Color(0xFF7B2FBE),
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -91,29 +125,20 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             children: [
               const Text(
                 "Enter verification code",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 10),
-
-              const Text(
-                "Check your email and enter the code",
-                style: TextStyle(color: Colors.black54),
+              Text(
+                "A code was sent to ${widget.email}",
+                style: const TextStyle(color: Colors.black54),
+                textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 30),
-
               TextField(
                 controller: _codeController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
-                  letterSpacing: 5,
-                ),
+                style: const TextStyle(fontSize: 20, letterSpacing: 5),
                 decoration: InputDecoration(
                   hintText: "------",
                   border: OutlineInputBorder(
@@ -121,9 +146,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 30),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -135,17 +158,25 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Verify"),
+                      : const Text("Verify", style: TextStyle(color: Colors.white)),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              TextButton(
-                onPressed: () {
-                  _showError("Resend not implemented yet");
-                },
-                child: const Text("Resend code"),
+              _isResending
+                  ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF7B2FBE),
+                ),
+              )
+                  : TextButton(
+                onPressed: _resendCode,
+                child: const Text(
+                  "Resend code",
+                  style: TextStyle(color: Color(0xFF7B2FBE)),
+                ),
               ),
             ],
           ),

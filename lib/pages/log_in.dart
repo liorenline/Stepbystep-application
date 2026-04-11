@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://stepbystep-cmnf.onrender.com/api/login'),
+        Uri.parse('https://stepbystep.fly.dev/api/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,

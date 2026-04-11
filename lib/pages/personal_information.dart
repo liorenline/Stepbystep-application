@@ -17,27 +17,22 @@ class PersonalInformationPage extends StatefulWidget {
 }
 
 class _PersonalInformationPageState extends State<PersonalInformationPage> {
-  late TextEditingController _firstNameController;
-  late TextEditingController _lastNameController;
+  late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
-  bool _firstNameEnabled = false;
-  bool _lastNameEnabled = false;
+  bool _usernameEnabled = false;
   bool _emailEnabled = false;
   bool _passwordEnabled = false;
 
-  final String baseUrl = "https://stepbystep-cmnf.onrender.com/api";
+  final String baseUrl = "https://stepbystep.fly.dev/api";
 
   @override
   void initState() {
     super.initState();
-
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
+    _usernameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-
     _loadUser();
   }
 
@@ -46,13 +41,11 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       final response = await http.get(
         Uri.parse("$baseUrl/user/${widget.userId}"),
       );
-
       final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && data["success"] == true) {
         setState(() {
-          _firstNameController.text = data["username"] ?? "";
-          _emailController.text = data["email"] ?? "";
+          _usernameController.text = data["data"]["username"] ?? "";
+          _emailController.text = data["data"]["email"] ?? "";
         });
       }
     } catch (e) {
@@ -60,11 +53,36 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     }
   }
 
-  void _saveProfile() {
-    // Тут підключиш PUT API
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saved (API not connected yet)')),
-    );
+  Future<void> _saveProfile() async {
+    try {
+      final body = <String, String>{};
+      if (_usernameController.text.isNotEmpty) body["username"] = _usernameController.text.trim();
+      if (_emailController.text.isNotEmpty) body["email"] = _emailController.text.trim();
+      if (_passwordController.text.isNotEmpty) body["password"] = _passwordController.text;
+
+      final response = await http.put(
+        Uri.parse("$baseUrl/user/${widget.userId}"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(response.body);
+      if (!mounted) return;
+      if (response.statusCode == 200 && data["success"] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Saved!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["error"] ?? "Error"), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server error"), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _showDeleteDialog() {
@@ -90,8 +108,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -103,48 +120,27 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          Positioned(
-            top: -60,
-            right: -60,
-            child: _blurBlob(260, const Color(0xFFFFB3C6)),
-          ),
-          Positioned(
-            top: -60,
-            left: -60,
-            child: _blurBlob(220, const Color(0xFFD4F5B0)),
-          ),
-
+          Positioned(top: -60, right: -60, child: _blurBlob(260, const Color(0xFFFFB3C6))),
+          Positioned(top: -60, left: -60, child: _blurBlob(220, const Color(0xFFD4F5B0))),
           SafeArea(
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Text(
-                            'STEP BY STEP',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF7B2FBE),
-                            ),
-                          ),
-                          Text(
-                            'Learn with Flashcards',
-                            style: TextStyle(fontSize: 10),
-                          ),
+                          Text('STEP BY STEP', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF7B2FBE))),
+                          Text('Learn with Flashcards', style: TextStyle(fontSize: 10)),
                         ],
                       ),
                       const Icon(Icons.person_outline),
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -152,89 +148,49 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-
-                        const Center(
-                          child: Text(
-                            'Personal Information',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-
+                        const Center(child: Text('Personal Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
                         const SizedBox(height: 36),
-
                         _buildField(
-                          label: 'First Name',
-                          controller: _firstNameController,
-                          enabled: _firstNameEnabled,
-                          onEdit: () {
-                            setState(() {
-                              _firstNameEnabled = !_firstNameEnabled;
-                              if (!_firstNameEnabled) _saveProfile();
-                            });
+                          label: 'Username',
+                          controller: _usernameController,
+                          enabled: _usernameEnabled,
+                          onEdit: () async {
+                            if (_usernameEnabled) await _saveProfile();
+                            setState(() => _usernameEnabled = !_usernameEnabled);
                           },
                         ),
-
                         const SizedBox(height: 16),
-
-                        _buildField(
-                          label: 'Last Name',
-                          controller: _lastNameController,
-                          enabled: _lastNameEnabled,
-                          onEdit: () {
-                            setState(() {
-                              _lastNameEnabled = !_lastNameEnabled;
-                              if (!_lastNameEnabled) _saveProfile();
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 16),
-
                         _buildField(
                           label: 'Email',
                           controller: _emailController,
                           enabled: _emailEnabled,
                           keyboardType: TextInputType.emailAddress,
-                          onEdit: () {
-                            setState(() {
-                              _emailEnabled = !_emailEnabled;
-                              if (!_emailEnabled) _saveProfile();
-                            });
+                          onEdit: () async {
+                            if (_emailEnabled) await _saveProfile();
+                            setState(() => _emailEnabled = !_emailEnabled);
                           },
                         ),
-
                         const SizedBox(height: 16),
-
                         _buildField(
                           label: 'Password',
                           controller: _passwordController,
                           enabled: _passwordEnabled,
                           obscureText: true,
-                          onEdit: () {
-                            setState(() {
-                              _passwordEnabled = !_passwordEnabled;
-                              if (!_passwordEnabled) _saveProfile();
-                            });
+                          onEdit: () async {
+                            if (_passwordEnabled) await _saveProfile();
+                            setState(() => _passwordEnabled = !_passwordEnabled);
                           },
                         ),
-
                         const SizedBox(height: 36),
                         const Divider(),
                         const SizedBox(height: 32),
-
                         Center(
                           child: OutlinedButton(
                             onPressed: _showDeleteDialog,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                            ),
+                            style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                             child: const Text('Delete account'),
                           ),
                         ),
-
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -269,9 +225,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                 enabled: enabled,
                 obscureText: obscureText && !enabled,
                 keyboardType: keyboardType,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
             ),
             const SizedBox(width: 12),
@@ -291,10 +245,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.8),
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.8)),
       ),
     );
   }
