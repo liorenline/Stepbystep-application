@@ -39,11 +39,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     setState(() => _isLoading = true);
-    _showMessage("Connecting to server, please wait...");
 
     try {
-      final response = await http
-          .post(
+      final response = await http.post(
         Uri.parse("$baseUrl/register"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
@@ -52,12 +50,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           "password": password,
           "confirm_password": confirm,
         }),
-      )
-          .timeout(const Duration(seconds: 90));
+      ).timeout(const Duration(seconds: 90));
 
       final Map<String, dynamic> data = jsonDecode(response.body);
 
-      // Email exists but not verified — resend code and go to verify screen
       if (response.statusCode == 409) {
         await _resendAndNavigate(email);
         return;
@@ -65,6 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (response.statusCode != 200) {
         _showError(data["error"] ?? "Server error");
+        if (mounted) setState(() => _isLoading = false);
         return;
       }
 
@@ -72,10 +69,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         final userId = data["data"]?["user_id"];
         if (userId == null) {
           _showError("Invalid server response");
+          if (mounted) setState(() => _isLoading = false);
           return;
         }
-
         if (!mounted) return;
+        setState(() => _isLoading = false);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -84,23 +82,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       } else {
         _showError(data["error"] ?? "Registration failed");
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
       _showError("Server is unavailable. Please try again.");
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _resendAndNavigate(String email) async {
     try {
-      final response = await http
-          .post(
+      final response = await http.post(
         Uri.parse("$baseUrl/resend-verification"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": email}),
-      )
-          .timeout(const Duration(seconds: 90));
+      ).timeout(const Duration(seconds: 90));
 
       final data = jsonDecode(response.body);
 
@@ -108,10 +104,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         final userId = data["data"]?["user_id"];
         if (userId == null) {
           _showError("Invalid server response");
+          if (mounted) setState(() => _isLoading = false);
           return;
         }
-
         if (!mounted) return;
+        setState(() => _isLoading = false);
         _showError("This email is already registered but not verified. A new code has been sent.");
         Navigator.push(
           context,
@@ -121,12 +118,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       } else {
         _showError(data["error"] ?? "Failed to resend verification code.");
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
       _showError("Server is unavailable. Please try again.");
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    if (mounted) setState(() => _isLoading = false);
   }
 
   void _showError(String msg) {
@@ -134,11 +131,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
     );
-  }
-
-  void _showMessage(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -158,16 +150,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         builder: (context, constraints) {
           return Stack(
             children: [
-              Positioned(
-                top: -80,
-                left: -80,
-                child: _blurBlob(300, const Color(0xFFFFB3C6)),
-              ),
-              Positioned(
-                bottom: -80,
-                right: -80,
-                child: _blurBlob(300, const Color(0xFFD4F5B0)),
-              ),
+              Positioned(top: -80, left: -80, child: _blurBlob(300, const Color(0xFFFFB3C6))),
+              Positioned(bottom: -80, right: -80, child: _blurBlob(300, const Color(0xFFD4F5B0))),
               SafeArea(
                 child: SingleChildScrollView(
                   child: Padding(
@@ -177,21 +161,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: 40),
                         const Text(
                           'STEP  BY  STEP',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF7B2FBE),
-                            letterSpacing: 3,
-                          ),
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF7B2FBE), letterSpacing: 3),
                         ),
                         const SizedBox(height: 40),
-                        const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        const Text('Sign up', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 30),
                         _input("Username", _usernameController),
                         _input("Email", _emailController),
@@ -213,15 +186,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               shape: const StadiumBorder(),
                             ),
                             child: _isLoading
-                                ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                                : const Text(
-                              'Create an account',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                                ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : const Text('Create an account', style: TextStyle(color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -237,8 +203,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _input(String label, TextEditingController controller,
-      {bool isPassword = false}) {
+  Widget _input(String label, TextEditingController controller, {bool isPassword = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,10 +233,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.8),
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.8)),
       ),
     );
   }

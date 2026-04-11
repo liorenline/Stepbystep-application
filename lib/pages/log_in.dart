@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'sign_up_screen.dart';
 import 'main.page.dart';
+import 'verify_2fa_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,18 +38,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final response = await http.post(
         Uri.parse('https://stepbystep.fly.dev/api/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       final data = jsonDecode(response.body);
@@ -57,31 +52,45 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200 && data['success'] == true) {
         final responseData = data['data'];
 
-        final username = responseData['username']?.toString() ?? 'User';
-        final userId = responseData['user_id']; // ✅ важливо
+        // 2FA required — navigate to verification screen
+        if (responseData['requires_2fa'] == true) {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Verify2FAScreen(
+                userId: responseData['user_id'],
+                email: email,
+              ),
+            ),
+          );
+          return;
+        }
 
+        // Normal login — go to home
+        final username = responseData['username']?.toString() ?? 'User';
+        final userId = responseData['user_id'];
+
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => HomeScreen(
-              username: username,
-              userId: userId,
-            ),
+            builder: (_) => HomeScreen(username: username, userId: userId),
           ),
         );
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['error'] ?? 'Login failed')),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -110,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 right: -80,
                 child: _blurBlob(300, const Color(0xFFD4F5B0)),
               ),
-
               SafeArea(
                 child: SizedBox(
                   width: constraints.maxWidth,
@@ -139,7 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 48),
-
                         const Text(
                           'Log in',
                           style: TextStyle(
@@ -149,10 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
-                        /// EMAIL
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -163,10 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
-                        /// PASSWORD
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -178,21 +179,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? Icons.remove_red_eye_outlined
                                     : Icons.visibility_off_outlined,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                              onPressed: () => setState(
+                                      () => _obscurePassword = !_obscurePassword),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
-                        /// LOGIN BUTTON
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -204,8 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: _isLoading
                                 ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
+                                color: Colors.white)
                                 : const Text(
                               'Log in',
                               style: TextStyle(
@@ -216,18 +210,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
                               "Don't have an account? ",
                               style: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 13,
-                              ),
+                                  color: Colors.black54, fontSize: 13),
                             ),
                             GestureDetector(
                               onTap: _goToSignUp,
