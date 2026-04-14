@@ -131,11 +131,6 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              Text(
-                "A code was sent to ${widget.email}",
-                style: const TextStyle(color: Colors.black54),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 30),
               TextField(
                 controller: _codeController,

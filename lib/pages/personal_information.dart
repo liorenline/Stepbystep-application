@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'verify_action_page.dart';
 import 'two_factor_setup_page.dart';
 import 'change_password_page.dart';
+import '../pages/welcome_page.dart'; // ← підправ шлях якщо інший
 
 const _purple = Color(0xFF7B2FBE);
 const _baseUrl = "https://stepbystep.fly.dev/api";
@@ -47,6 +48,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
   bool _emailEnabled = false;
   bool _twoFactorEnabled = false;
   bool _twoFactorLoading = false;
+  bool _deleteLoading = false;
 
   @override
   void initState() {
@@ -62,6 +64,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     _emailController.dispose();
     super.dispose();
   }
+
+  // ─── API ───────────────────────────────────────────────────────────────────
 
   Future<void> _loadUser() async {
     try {
@@ -108,6 +112,35 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     }
   }
 
+  Future<void> _deleteAccount() async {
+    setState(() => _deleteLoading = true);
+    try {
+      final res = await http.delete(
+        Uri.parse("$_baseUrl/user/${widget.userId}"),
+        headers: {"Content-Type": "application/json"},
+      );
+      final data = jsonDecode(res.body);
+      if (!mounted) return;
+
+      if (res.statusCode == 200 && data["success"] == true) {
+        // Повертаємо на WelcomeScreen і очищаємо весь стек навігації
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+              (route) => false,
+        );
+      } else {
+        setState(() => _deleteLoading = false);
+        _snack(data["error"] ?? "Failed to delete account", Colors.red);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _deleteLoading = false);
+      _snack("Server error", Colors.red);
+    }
+  }
+
+  // ─── 2FA ───────────────────────────────────────────────────────────────────
+
   Future<void> _onTwoFactorToggle(bool value) async {
     if (value) {
       final enabled = await Navigator.push<bool>(
@@ -122,33 +155,6 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     } else {
       _showDisable2FADialog();
     }
-  }
-
-  void _showDisable2FADialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Disable 2FA"),
-        content: const Text(
-          "Are you sure you want to disable two-factor authentication? "
-              "This will reduce your account security.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _initiateDisable2FA();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text("Disable"),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _initiateDisable2FA() async {
@@ -200,6 +206,35 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     }
   }
 
+  // ─── Dialogs ───────────────────────────────────────────────────────────────
+
+  void _showDisable2FADialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Disable 2FA"),
+        content: const Text(
+          "Are you sure you want to disable two-factor authentication? "
+              "This will reduce your account security.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _initiateDisable2FA();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text("Disable"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -215,7 +250,10 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
             child: const Text("Cancel"),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _deleteAccount(); // ← викликає видалення
+            },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text("Delete"),
           ),
@@ -224,11 +262,15 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     );
   }
 
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
   void _snack(String msg, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg), backgroundColor: color),
     );
   }
+
+  // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -251,8 +293,20 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
               children: [
                 _buildHeader(),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _deleteLoading
+                      ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: _purple),
+                        SizedBox(height: 16),
+                        Text("Deleting account..."),
+                      ],
+                    ),
+                  )
+                      : SingleChildScrollView(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -261,7 +315,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                           "Personal Information",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 36),
                         _buildField(
@@ -270,8 +325,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                           enabled: _usernameEnabled,
                           onEdit: () async {
                             if (_usernameEnabled) await _saveProfile();
-                            setState(
-                                    () => _usernameEnabled = !_usernameEnabled);
+                            setState(() =>
+                            _usernameEnabled = !_usernameEnabled);
                           },
                         ),
                         const SizedBox(height: 16),
@@ -282,7 +337,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                           keyboardType: TextInputType.emailAddress,
                           onEdit: () async {
                             if (_emailEnabled) await _saveProfile();
-                            setState(() => _emailEnabled = !_emailEnabled);
+                            setState(
+                                    () => _emailEnabled = !_emailEnabled);
                           },
                         ),
                         const SizedBox(height: 16),
@@ -299,7 +355,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                             onPressed: _showDeleteDialog,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
+                              side:
+                              const BorderSide(color: Colors.red),
                             ),
                             child: const Text("Delete account"),
                           ),
@@ -317,6 +374,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     );
   }
 
+  // ─── Widgets ───────────────────────────────────────────────────────────────
+
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -331,7 +390,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: _purple)),
-              Text("Learn with Flashcards", style: TextStyle(fontSize: 10)),
+              Text("Learn with Flashcards",
+                  style: TextStyle(fontSize: 10)),
             ],
           ),
           Icon(Icons.person_outline),
@@ -374,6 +434,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       ],
     );
   }
+
   Widget _buildPasswordRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +453,9 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                 obscureText: true,
                 controller: TextEditingController(text: "password"),
                 style: const TextStyle(
-                    color: Colors.black87, fontSize: 18, letterSpacing: 4),
+                    color: Colors.black87,
+                    fontSize: 18,
+                    letterSpacing: 4),
                 decoration: _baseDecoration,
               ),
             ),
@@ -403,7 +466,8 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ChangePasswordPage(userId: widget.userId),
+                    builder: (_) =>
+                        ChangePasswordPage(userId: widget.userId),
                   ),
                 );
               },
@@ -413,12 +477,14 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       ],
     );
   }
+
   Widget _buildSecuritySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Security",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            style:
+            TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Row(
           children: [
