@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'technical_support_page.dart'; // ← підключи правильний шлях до свого файлу
 
 const _purple = Color(0xFF7B2FBE);
 const _cyan = Color(0xFF00BCD4);
@@ -33,7 +34,6 @@ class PrivacyPolicyPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 16),
@@ -148,12 +148,21 @@ class PrivacyPolicyPage extends StatelessWidget {
                               'We will notify you of any changes by posting the new policy in the app. '
                               'Your continued use of the app after changes constitutes acceptance.',
                         ),
-                        _section(
+
+                        // ── 8. Contact Us — тапабельний, веде на TechnicalSupportPage ──
+                        _sectionTappable(
+                          context: context,
                           icon: Icons.email_outlined,
                           title: '8. Contact Us',
                           body:
                           'If you have any questions about this Privacy Policy, '
                               'please contact us at: step.by.step.ver.code@gmail.com',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TechnicalSupportPage(),
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 40),
@@ -177,8 +186,7 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.85),
           borderRadius: BorderRadius.circular(16),
@@ -220,6 +228,68 @@ class PrivacyPolicyPage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTappable({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String body,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: _purple, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios,
+                      size: 14, color: Colors.black38),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                body,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.black54,
+                  height: 1.6,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

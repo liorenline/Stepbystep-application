@@ -144,7 +144,6 @@ class TechnicalSupportPage extends StatelessWidget {
 
                         const SizedBox(height: 40),
 
-                        // Email картка — стрілка прибрана (showArrow: false)
                         _infoCard(
                           icon: Icons.email_outlined,
                           title: 'Email us',
