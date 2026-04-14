@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'personal_information.dart';
+import 'privacy_policy_page.dart';
+import 'technical_support_page.dart';
 
 class CabinetScreen extends StatelessWidget {
   final int userId;
@@ -71,7 +73,6 @@ class CabinetScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-
                             Container(
                               width: 40,
                               height: 40,
@@ -108,7 +109,8 @@ class CabinetScreen extends StatelessWidget {
                             const SizedBox(height: 48),
 
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 40),
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 40),
                               child: Column(
                                 children: [
                                   _menuButton(
@@ -118,10 +120,17 @@ class CabinetScreen extends StatelessWidget {
                                   const SizedBox(height: 16),
                                   _menuButton(
                                     label: 'Privacy Policy',
-                                    onTap: () {},
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                          const PrivacyPolicyPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                   const SizedBox(height: 16),
-
                                   _menuButton(
                                     label: 'Personal Information',
                                     onTap: () {
@@ -136,12 +145,18 @@ class CabinetScreen extends StatelessWidget {
                                       );
                                     },
                                   ),
-
                                   const SizedBox(height: 16),
                                   _menuButton(
-                                    label:
-                                    'Technical support',
-                                    onTap: () {},
+                                    label: 'Technical support',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                          const TechnicalSupportPage(),
+                                        ),
+                                      );
+                                    },
                                     multiline: true,
                                   ),
                                 ],
