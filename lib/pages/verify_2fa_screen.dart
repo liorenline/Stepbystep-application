@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'main.page.dart';
 
 class Verify2FAScreen extends StatefulWidget {
   final int userId;
   final String email;
 
-  const Verify2FAScreen({
-    super.key,
-    required this.userId,
-    required this.email,
-  });
+  const Verify2FAScreen(
+      {super.key, required this.userId, required this.email});
 
   @override
   State<Verify2FAScreen> createState() => _Verify2FAScreenState();
@@ -23,14 +19,20 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
 
   bool _isLoading = false;
   bool _isResending = false;
+  String? _codeError;
 
   final String baseUrl = "https://stepbystep.fly.dev/api";
 
   Future<void> _verifyCode() async {
     final code = _codeController.text.trim();
+    setState(() => _codeError = null);
 
     if (code.isEmpty) {
-      _showError("Enter the verification code");
+      setState(() => _codeError = "Enter the verification code");
+      return;
+    }
+    if (code.length != 6) {
+      setState(() => _codeError = "Code must be 6 digits");
       return;
     }
 
@@ -40,10 +42,7 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
       final response = await http.post(
         Uri.parse("$baseUrl/verify-2fa"),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "user_id": widget.userId,
-          "code": code,
-        }),
+        body: jsonEncode({"user_id": widget.userId, "code": code}),
       ).timeout(const Duration(seconds: 90));
 
       final data = jsonDecode(response.body);
@@ -57,15 +56,18 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) => HomeScreen(username: username, userId: userId),
+            builder: (_) =>
+                HomeScreen(username: username, userId: userId),
           ),
               (route) => false,
         );
       } else {
-        _showError(data["error"] ?? "Invalid or expired code.");
+        setState(() =>
+        _codeError = data["error"] ?? "Invalid or expired code.");
       }
     } catch (e) {
-      _showError("Server is unavailable. Please try again.");
+      setState(
+              () => _codeError = "Server is unavailable. Please try again.");
     }
 
     if (mounted) setState(() => _isLoading = false);
@@ -73,30 +75,13 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
 
   Future<void> _resendCode() async {
     setState(() => _isResending = true);
-
-    try {
-      // Re-trigger login to resend the 2FA code — backend sends it on login
-      // There's no standalone resend endpoint for 2FA login codes,
-      // so we just inform the user to go back and log in again.
-      // If you add a /resend-2fa endpoint later, call it here instead.
-      _showMessage("Please go back and log in again to receive a new code.");
-    } finally {
-      if (mounted) setState(() => _isResending = false);
-    }
-  }
-
-  void _showError(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
-    );
-  }
-
-  void _showMessage(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    // No resend endpoint yet — inform user
+    await Future.delayed(const Duration(milliseconds: 300));
+    setState(() {
+      _isResending = false;
+      _codeError =
+      "Please go back and log in again to receive a new code.";
+    });
   }
 
   @override
@@ -120,32 +105,69 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.shield_outlined,
-                size: 56,
-                color: Color(0xFF7B2FBE),
-              ),
+              const Icon(Icons.shield_outlined,
+                  size: 56, color: Color(0xFF7B2FBE)),
               const SizedBox(height: 20),
               const Text(
                 "Enter verification code",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
+              Text(
+                "Sent to ${widget.email}",
+                style: const TextStyle(color: Colors.black54),
+              ),
               const SizedBox(height: 30),
               TextField(
                 controller: _codeController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, letterSpacing: 5),
+                style:
+                const TextStyle(fontSize: 20, letterSpacing: 5),
                 maxLength: 6,
+                onChanged: (_) =>
+                    setState(() => _codeError = null),
                 decoration: InputDecoration(
                   hintText: "------",
                   counterText: "",
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color:
+                      _codeError != null ? Colors.red : Colors.black,
+                      width: _codeError != null ? 1.5 : 1.0,
+                    ),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _codeError != null
+                          ? Colors.red
+                          : const Color(0xFF7B2FBE),
+                      width: 1.8,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
               ),
+              if (_codeError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 2),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline,
+                          color: Colors.red, size: 14),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(_codeError!,
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
@@ -157,11 +179,10 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
                     shape: const StadiumBorder(),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                    "Verify",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                      ? const CircularProgressIndicator(
+                      color: Colors.white)
+                      : const Text("Verify",
+                      style: TextStyle(color: Colors.white)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -170,16 +191,14 @@ class _Verify2FAScreenState extends State<Verify2FAScreen> {
                 height: 24,
                 width: 24,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFF7B2FBE),
-                ),
+                    strokeWidth: 2,
+                    color: Color(0xFF7B2FBE)),
               )
                   : TextButton(
                 onPressed: _resendCode,
-                child: const Text(
-                  "Didn't receive a code?",
-                  style: TextStyle(color: Color(0xFF7B2FBE)),
-                ),
+                child: const Text("Didn't receive a code?",
+                    style:
+                    TextStyle(color: Color(0xFF7B2FBE))),
               ),
             ],
           ),

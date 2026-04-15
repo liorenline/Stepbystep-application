@@ -20,6 +20,16 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
+  String? _emailError;
+  String? _passwordError;
+  String? _generalError;
+
+  void _clearErrors() {
+    _emailError = null;
+    _passwordError = null;
+    _generalError = null;
+  }
+
   void _goToSignUp() {
     Navigator.push(
       context,
@@ -31,10 +41,19 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fill all fields')),
-      );
+    setState(() => _clearErrors());
+
+    bool hasError = false;
+    if (email.isEmpty) {
+      _emailError = 'Please enter your email';
+      hasError = true;
+    }
+    if (password.isEmpty) {
+      _passwordError = 'Please enter your password';
+      hasError = true;
+    }
+    if (hasError) {
+      setState(() {});
       return;
     }
 
@@ -52,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200 && data['success'] == true) {
         final responseData = data['data'];
 
-        // 2FA required — navigate to verification screen
         if (responseData['requires_2fa'] == true) {
           if (!mounted) return;
           Navigator.push(
@@ -67,7 +85,6 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-        // Normal login — go to home
         final username = responseData['username']?.toString() ?? 'User';
         final userId = responseData['user_id'];
 
@@ -79,16 +96,15 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['error'] ?? 'Login failed')),
-        );
+        final errorMsg = data['error'] ?? 'Invalid credentials';
+        setState(() {
+          _emailError = '';
+          _passwordError = '';
+          _generalError = errorMsg;
+        });
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      setState(() => _generalError = 'Connection error. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -99,6 +115,31 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  InputDecoration _fieldDecoration({
+    required String hint,
+    required bool hasError,
+    Widget? suffixIcon,
+  }) {
+    final errorBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: Colors.red, width: 1.5),
+    );
+    return InputDecoration(
+      hintText: hint,
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      enabledBorder: hasError
+          ? errorBorder
+          : OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      focusedBorder: hasError
+          ? errorBorder
+          : OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF7B2FBE), width: 1.8),
+      ),
+    );
   }
 
   @override
@@ -157,22 +198,36 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
+
+                        // Email field
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            hintText: 'example@mail.com',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                          onChanged: (_) => setState(() {
+                            _emailError = null;
+                            _generalError = null;
+                          }),
+                          decoration: _fieldDecoration(
+                            hint: 'example@mail.com',
+                            hasError: _emailError != null && _emailError!.isNotEmpty,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        if (_emailError != null && _emailError!.isNotEmpty)
+                          _errorText(_emailError!),
+
+                        const SizedBox(height: 16),
+
+                        // Password field
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
+                          onChanged: (_) => setState(() {
+                            _passwordError = null;
+                            _generalError = null;
+                          }),
+                          decoration: _fieldDecoration(
+                            hint: 'Password',
+                            hasError: _passwordError != null && _passwordError!.isNotEmpty,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -182,11 +237,39 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () => setState(
                                       () => _obscurePassword = !_obscurePassword),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                           ),
                         ),
+                        if (_passwordError != null && _passwordError!.isNotEmpty)
+                          _errorText(_passwordError!),
+
+                        // General error (wrong credentials)
+                        if (_generalError != null) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline,
+                                    color: Colors.red, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _generalError!,
+                                    style: const TextStyle(
+                                        color: Colors.red, fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
@@ -216,8 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             const Text(
                               "Don't have an account? ",
-                              style: TextStyle(
-                                  color: Colors.black54, fontSize: 13),
+                              style:
+                              TextStyle(color: Colors.black54, fontSize: 13),
                             ),
                             GestureDetector(
                               onTap: _goToSignUp,
@@ -240,6 +323,20 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _errorText(String msg) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 14),
+          const SizedBox(width: 4),
+          Text(msg,
+              style: const TextStyle(color: Colors.red, fontSize: 12)),
+        ],
       ),
     );
   }

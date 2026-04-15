@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
@@ -29,6 +30,7 @@ class VerifyActionPage extends StatefulWidget {
   final String title;
   final String description;
   final Future<bool> Function(String code) onVerified;
+  final Future<bool> Function()? onResend; // <-- новий параметр
 
   const VerifyActionPage({
     super.key,
@@ -36,6 +38,7 @@ class VerifyActionPage extends StatefulWidget {
     required this.title,
     required this.description,
     required this.onVerified,
+    this.onResend, // <-- необов'язковий
   });
 
   @override
@@ -46,11 +49,39 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
   final _codeController = TextEditingController();
 
   bool _loading = false;
+  bool _resendLoading = false;
   String? _errorMessage;
+  String? _successMessage;
+
+  // Таймер
+  int _resendCooldown = 60;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _resendCooldown = 60;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        if (_resendCooldown > 0) {
+          _resendCooldown--;
+        } else {
+          t.cancel();
+        }
+      });
+    });
+  }
 
   @override
   void dispose() {
     _codeController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -64,6 +95,7 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
     setState(() {
       _loading = true;
       _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
@@ -72,14 +104,39 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
       if (success) {
         Navigator.of(context).pop(true);
       } else {
-        setState(
-                () => _errorMessage = "Invalid or expired code. Try again.");
+        setState(() => _errorMessage = "Invalid or expired code. Try again.");
       }
     } catch (_) {
       if (!mounted) return;
       setState(() => _errorMessage = "Server error. Please try again.");
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _resend() async {
+    if (widget.onResend == null) return;
+
+    setState(() {
+      _resendLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final success = await widget.onResend!();
+      if (!mounted) return;
+      if (success) {
+        setState(() => _successMessage = "A new code has been sent to your email.");
+        _startTimer();
+      } else {
+        setState(() => _errorMessage = "Failed to resend code. Try again.");
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _errorMessage = "Server error. Please try again.");
+    } finally {
+      if (mounted) setState(() => _resendLoading = false);
     }
   }
 
@@ -157,6 +214,8 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
                       counterText: "",
                     ),
                   ),
+
+                  // Помилка
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -172,7 +231,65 @@ class _VerifyActionPageState extends State<VerifyActionPage> {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 32),
+
+                  // Успіх resend
+                  if (_successMessage != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline,
+                            color: Colors.green, size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(_successMessage!,
+                              style: const TextStyle(
+                                  color: Colors.green, fontSize: 13)),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Resend row
+                  if (widget.onResend != null)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Didn't receive a code? ",
+                            style: TextStyle(
+                                color: Colors.black54, fontSize: 13)),
+                        _resendLoading
+                            ? const SizedBox(
+                          height: 14,
+                          width: 14,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: _purple),
+                        )
+                            : _resendCooldown > 0
+                            ? Text(
+                          "Resend in ${_resendCooldown}s",
+                          style: const TextStyle(
+                              color: Colors.black38, fontSize: 13),
+                        )
+                            : GestureDetector(
+                          onTap: _resend,
+                          child: const Text(
+                            "Resend code",
+                            style: TextStyle(
+                              color: _purple,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                              decorationColor: _purple,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  const SizedBox(height: 16),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

@@ -21,11 +21,11 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
 
     if (_codeController.text == "123456") {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("2FA verified ✅")),
+        const SnackBar(content: Text("2FA verified")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid code ❌")),
+        const SnackBar(content: Text("Invalid code")),
       );
     }
 
@@ -36,7 +36,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
 
   Future<void> resendCode() async {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Code resent 📩")),
+      const SnackBar(content: Text("Code resent")),
     );
   }
 
