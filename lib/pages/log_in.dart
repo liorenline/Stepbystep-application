@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'sign_up_screen.dart';
 import 'main.page.dart';
 import 'verify_2fa_screen.dart';
@@ -87,6 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final username = responseData['username']?.toString() ?? 'User';
         final userId = responseData['user_id'];
+
+        // Зберігаємо сесію локально на телефоні
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', username);
+        await prefs.setInt('userId', userId);
 
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -242,7 +248,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (_passwordError != null && _passwordError!.isNotEmpty)
                           _errorText(_passwordError!),
 
-                        // General error (wrong credentials)
                         if (_generalError != null) ...[
                           const SizedBox(height: 10),
                           Container(
@@ -299,8 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             const Text(
                               "Don't have an account? ",
-                              style:
-                              TextStyle(color: Colors.black54, fontSize: 13),
+                              style: TextStyle(color: Colors.black54, fontSize: 13),
                             ),
                             GestureDetector(
                               onTap: _goToSignUp,
@@ -334,8 +338,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           const Icon(Icons.error_outline, color: Colors.red, size: 14),
           const SizedBox(width: 4),
-          Text(msg,
-              style: const TextStyle(color: Colors.red, fontSize: 12)),
+          Text(msg, style: const TextStyle(color: Colors.red, fontSize: 12)),
         ],
       ),
     );

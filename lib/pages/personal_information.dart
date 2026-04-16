@@ -2,10 +2,11 @@ import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'verify_action_page.dart';
 import 'two_factor_setup_page.dart';
 import 'change_password_page.dart';
-import '../pages/welcome_page.dart'; // ← підправ шлях якщо інший
+import '../pages/welcome_page.dart';
 
 const _purple = Color(0xFF7B2FBE);
 const _baseUrl = "https://stepbystep.fly.dev/api";
@@ -112,6 +113,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
     }
   }
 
+  // ─── ФІКС: очищаємо SharedPreferences перед переходом ────────────────────
   Future<void> _deleteAccount() async {
     setState(() => _deleteLoading = true);
     try {
@@ -123,7 +125,11 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       if (!mounted) return;
 
       if (res.statusCode == 200 && data["success"] == true) {
-        // Повертаємо на WelcomeScreen і очищаємо весь стек навігації
+        // Очищаємо всі збережені дані — щоб WelcomeScreen не читав старий userId
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+
+        if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const WelcomeScreen()),
               (route) => false,
@@ -137,6 +143,32 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       setState(() => _deleteLoading = false);
       _snack("Server error", Colors.red);
     }
+  }
+
+  // ─── Logout ────────────────────────────────────────────────────────────────
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
+    await prefs.remove('userId');
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          (route) => false,
+    );
+  }
+
+  // ─── Switch account ────────────────────────────────────────────────────────
+
+  Future<void> _switchAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
+    await prefs.remove('userId');
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          (route) => false,
+    );
   }
 
   // ─── 2FA ───────────────────────────────────────────────────────────────────
@@ -252,10 +284,60 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              _deleteAccount(); // ← викликає видалення
+              _deleteAccount();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Log out"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _logout();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text("Log out"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSwitchAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Switch account"),
+        content: const Text(
+          "You will be taken to the sign-in screen to log in to a different account.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _switchAccount();
+            },
+            style: TextButton.styleFrom(foregroundColor: _purple),
+            child: const Text("Switch"),
           ),
         ],
       ),
@@ -347,6 +429,36 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                         const Divider(),
                         const SizedBox(height: 24),
                         _buildSecuritySection(),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 24),
+
+                        // ─── Account section ──────────────────────────
+                        const Text(
+                          "Account",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        _accountButton(
+                          icon: Icons.swap_horiz_rounded,
+                          label: "Switch account",
+                          subtitle: "Sign in to a different account",
+                          iconColor: _purple,
+                          onTap: _showSwitchAccountDialog,
+                        ),
+                        const SizedBox(height: 12),
+                        _accountButton(
+                          icon: Icons.logout_rounded,
+                          label: "Log out",
+                          subtitle: "Sign out of this account",
+                          iconColor: Colors.red,
+                          labelColor: Colors.red,
+                          onTap: _showLogoutDialog,
+                        ),
+                        // ─────────────────────────────────────────────
+
                         const SizedBox(height: 24),
                         const Divider(),
                         const SizedBox(height: 32),
@@ -483,8 +595,7 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Security",
-            style:
-            TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -525,6 +636,51 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _accountButton({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color iconColor = _purple,
+    Color labelColor = Colors.black87,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: labelColor)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: const TextStyle(
+                          fontSize: 12, color: Colors.black54)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black26, size: 20),
+          ],
+        ),
+      ),
     );
   }
 

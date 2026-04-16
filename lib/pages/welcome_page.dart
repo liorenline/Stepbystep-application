@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'log_in.dart';
+import 'main.page.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final username = prefs.getString('username');
+    final userId = prefs.getInt('userId');
+
+    if (username != null && userId != null) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomeScreen(username: username, userId: userId),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +42,6 @@ class WelcomeScreen extends StatelessWidget {
         builder: (context, constraints) {
           return Stack(
             children: [
-              // Blobs
               Positioned(
                 top: -80,
                 left: -80,
@@ -34,7 +62,6 @@ class WelcomeScreen extends StatelessWidget {
                 right: -80,
                 child: _blurBlob(280, const Color(0xFFFFB3C6)),
               ),
-
               SafeArea(
                 child: SizedBox(
                   width: constraints.maxWidth,
@@ -45,7 +72,6 @@ class WelcomeScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Mascot placeholder
                         Container(
                           width: 160,
                           height: 160,
@@ -59,9 +85,7 @@ class WelcomeScreen extends StatelessWidget {
                             color: Color(0xFF7B2FBE),
                           ),
                         ),
-
                         const SizedBox(height: 28),
-
                         const Text(
                           'STEP  BY  STEP',
                           style: TextStyle(
@@ -72,9 +96,7 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         const Text(
                           'Learn with Flashcards',
                           style: TextStyle(
@@ -83,9 +105,7 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 40),
-
                         const Text(
                           'Welcome to our app!',
                           style: TextStyle(
@@ -95,9 +115,7 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         const Text(
                           'Here, knowledge becomes simple\nand learning becomes interesting.\nStart your journey to success today!',
                           textAlign: TextAlign.center,
@@ -108,9 +126,7 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'serif',
                           ),
                         ),
-
                         const SizedBox(height: 48),
-
                         SizedBox(
                           width: double.infinity,
                           height: 52,
